@@ -11,3 +11,5 @@
 **[2026-02-24 11:19:04]** Model Checkpoint: Validation F1 improved from 0.8512 to 0.8877. Saving model.
 
 **[2026-02-24 12:44:03]** Applying CLAHE preprocessing to validation set, contrast improved
+
+**[2026-02-25 13:04:32]** Epoch 12/50 - loss: 0.412 - accuracy: 0.81 - val_loss: 0.425 - val_accuracy: 0.80
