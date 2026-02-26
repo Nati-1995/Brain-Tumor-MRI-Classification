@@ -15,3 +15,5 @@
 **[2026-02-25 13:04:32]** Epoch 12/50 - loss: 0.412 - accuracy: 0.81 - val_loss: 0.425 - val_accuracy: 0.80
 
 **[2026-02-25 17:01:14]** Preprocessing: resized all inputs to 224x224, normalized to ImageNet stats.
+
+**[2026-02-26 11:26:25]** Gradio interface successfully routed to EfficientNetB0 backend.
