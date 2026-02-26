@@ -17,3 +17,5 @@
 **[2026-02-25 17:01:14]** Preprocessing: resized all inputs to 224x224, normalized to ImageNet stats.
 
 **[2026-02-26 11:26:25]** Gradio interface successfully routed to EfficientNetB0 backend.
+
+**[2026-02-26 20:41:46]** Switched optimizer to Adam with weight decay, smoother loss curve.
