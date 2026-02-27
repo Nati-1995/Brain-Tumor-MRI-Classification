@@ -25,3 +25,5 @@
 **[2026-02-27 11:42:10]** Switched optimizer to Adam with weight decay, smoother loss curve.
 
 **[2026-02-27 14:35:13]** Binary model converging faster than multiclass — expected given task simplicity.
+
+**[2026-02-27 19:40:35]** Ran 5-fold cross-validation on binary model, mean F1: 0.883.
