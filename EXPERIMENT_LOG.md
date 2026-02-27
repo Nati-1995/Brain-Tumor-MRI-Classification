@@ -19,3 +19,5 @@
 **[2026-02-26 11:26:25]** Gradio interface successfully routed to EfficientNetB0 backend.
 
 **[2026-02-26 20:41:46]** Switched optimizer to Adam with weight decay, smoother loss curve.
+
+**[2026-02-27 10:41:27]** Epoch 38/50 - loss: 0.298 - accuracy: 0.88 - val_loss: 0.312 - val_accuracy: 0.87
