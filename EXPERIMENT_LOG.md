@@ -23,3 +23,5 @@
 **[2026-02-27 10:41:27]** Epoch 38/50 - loss: 0.298 - accuracy: 0.88 - val_loss: 0.312 - val_accuracy: 0.87
 
 **[2026-02-27 11:42:10]** Switched optimizer to Adam with weight decay, smoother loss curve.
+
+**[2026-02-27 14:35:13]** Binary model converging faster than multiclass — expected given task simplicity.
