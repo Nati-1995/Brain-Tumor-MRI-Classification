@@ -31,3 +31,5 @@
 **[2026-03-01 10:23:25]** Class weights applied: {0: 1.5, 1: 0.8, 2: 2.1, 3: 1.1}
 
 **[2026-03-01 10:28:17]** Epoch 25/50 - loss: 0.345 - accuracy: 0.85 - val_loss: 0.350 - val_accuracy: 0.84
+
+**[2026-03-01 12:36:53]** Epoch 38/50 - loss: 0.298 - accuracy: 0.88 - val_loss: 0.312 - val_accuracy: 0.87
