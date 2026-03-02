@@ -37,3 +37,5 @@
 **[2026-03-02 10:37:11]** Applying CLAHE preprocessing to validation set, contrast improved
 
 **[2026-03-02 16:09:54]** Applying CLAHE preprocessing to validation set, contrast improved
+
+**[2026-03-02 18:49:23]** Learning rate sweep: testing 5e-5 optimizer, loss stabilizing
