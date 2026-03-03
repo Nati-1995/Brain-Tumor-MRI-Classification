@@ -41,3 +41,5 @@
 **[2026-03-02 18:49:23]** Learning rate sweep: testing 5e-5 optimizer, loss stabilizing
 
 **[2026-03-03 13:11:11]** Applying CLAHE preprocessing to validation set, contrast improved
+
+**[2026-03-03 16:35:48]** Binary model converging faster than multiclass — expected given task simplicity.
