@@ -47,3 +47,5 @@
 **[2026-03-03 17:31:52]** Binary model converging faster than multiclass — expected given task simplicity.
 
 **[2026-03-03 17:34:39]** Epoch 38/50 - loss: 0.298 - accuracy: 0.88 - val_loss: 0.312 - val_accuracy: 0.87
+
+**[2026-03-04 09:24:42]** Ran 5-fold cross-validation on binary model, mean F1: 0.883.
