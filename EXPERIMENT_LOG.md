@@ -51,3 +51,5 @@
 **[2026-03-04 09:24:42]** Ran 5-fold cross-validation on binary model, mean F1: 0.883.
 
 **[2026-03-04 15:29:52]** Epoch 12/50 - loss: 0.412 - accuracy: 0.81 - val_loss: 0.425 - val_accuracy: 0.80
+
+**[2026-03-04 18:15:00]** Final models frozen. Gradio UI deployed and tested end-to-end.
