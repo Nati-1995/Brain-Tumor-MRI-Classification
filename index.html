@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroScan · Brain Tumor MRI Classification</title>
+<style>
+  :root{
+    --bg:#141210; --panel:#1c1917; --panel2:#242019;
+    --line:#332c26; --ink:#efe7dc; --dim:#9a8d7d;
+    --accent:#d8925a; --accent2:#c9a06a; --deep:#7c9885;
+    --warn:#c76b5a; --ok:#8faa86;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+    --serif:'Fraunces','Georgia',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  /* nav */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 28px;background:rgba(20,18,16,.85);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  }
+  .brand{font-family:var(--serif);font-weight:600;font-size:18px;font-style:italic}
+  .brand b{color:var(--accent);font-style:normal}
+  .navlinks{display:flex;gap:26px}
+  .navlinks a{color:var(--dim);text-decoration:none;font-size:13px;
+    font-family:var(--mono);letter-spacing:.3px;transition:color .2s}
+  .navlinks a:hover{color:var(--accent)}
+  .menu-btn{display:none;background:none;border:none;color:var(--ink);font-size:22px;cursor:pointer}
+
+  section{padding:100px 28px;max-width:1180px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);color:var(--accent);font-size:12px;
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+  h1{font-family:var(--serif);font-size:clamp(40px,6.5vw,78px);font-weight:500;
+    line-height:1.0;letter-spacing:-1px}
+  h1 em{font-style:italic;color:var(--accent)}
+  h2{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:500;
+    letter-spacing:-.5px;margin-bottom:8px}
+  h3{font-family:var(--serif);font-size:21px;font-weight:500;margin-bottom:6px}
+  p.lead{color:var(--dim);font-size:18px;max-width:620px;margin-top:20px}
+
+  /* hero */
+  #hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+    align-items:center;gap:20px;padding-top:120px}
+  #brainwrap{position:relative;height:520px;border:1px solid var(--line);
+    border-radius:14px;background:radial-gradient(circle at 50% 40%,#241d17,#141210 72%);
+    overflow:hidden}
+  #brainwrap canvas{display:block}
+  .brain-tag{position:absolute;top:14px;left:16px;font-family:var(--mono);
+    font-size:11px;color:var(--dim);letter-spacing:1px}
+  .brain-tag b{color:var(--accent)}
+  .brain-legend{position:absolute;bottom:12px;left:16px;right:16px;display:flex;
+    flex-wrap:wrap;gap:8px 14px;font-family:var(--mono);font-size:10px;color:var(--dim)}
+  .brain-legend span{display:flex;align-items:center;gap:5px}
+  .brain-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .disclaimer{margin-top:26px;font-family:var(--mono);font-size:12px;
+    color:var(--warn);letter-spacing:.5px}
+
+  /* stat band */
+  .statband{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:40px}
+  .stat{background:var(--panel);padding:26px 20px}
+  .stat .num{font-family:var(--serif);font-size:38px;font-weight:500;color:var(--accent);font-style:italic}
+  .stat .lab{font-size:12px;color:var(--dim);margin-top:4px;letter-spacing:.5px}
+
+  /* generic panels */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:34px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px}
+  .card h3{color:var(--ink)}
+  .card p{color:var(--dim);font-size:14px}
+  .kv{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:10px}
+  .kv b{color:var(--ok)}
+
+  /* radial dot plot */
+  .radial-wrap{display:flex;align-items:center;gap:40px;flex-wrap:wrap;justify-content:center}
+  #radial{flex:0 0 auto}
+  #radial .ring{fill:none;stroke:var(--line);stroke-width:1}
+  #radial .arc{fill:none;stroke-width:9;stroke-linecap:round;
+    transition:stroke-dashoffset 1.3s cubic-bezier(.2,.7,.2,1)}
+  #radial .lab{font-family:var(--mono);font-size:9px;fill:var(--dim)}
+  #radial .ctr{font-family:var(--serif);font-size:26px;fill:var(--ink);font-style:italic}
+  #radial .ctr2{font-family:var(--mono);font-size:8px;fill:var(--dim);letter-spacing:1px}
+  .radial-legend{display:flex;flex-direction:column;gap:14px}
+  .radial-legend .lg{font-family:var(--mono);font-size:13px;color:var(--dim);
+    display:flex;align-items:center;gap:10px}
+  .radial-legend .lg b{color:var(--ink);margin-left:auto}
+  .radial-legend .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+
+  /* confusion matrix */
+  .cm{display:inline-grid;grid-template-columns:auto repeat(4,64px);gap:3px;
+    font-family:var(--mono);font-size:12px;margin-top:24px}
+  .cm .h{color:var(--dim);display:flex;align-items:center;justify-content:center;
+    padding:6px;text-align:center;font-size:10px}
+  .cm .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    border-radius:4px;color:#04121a;font-weight:700}
+  .cm .rl{color:var(--dim);font-size:10px;display:flex;align-items:center;
+    justify-content:flex-end;padding-right:8px}
+
+  /* figures */
+  figure{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  figure img{width:100%;display:block}
+  figcaption{padding:14px 18px;font-size:13px;color:var(--dim);
+    border-top:1px solid var(--line);font-family:var(--mono)}
+
+  .findings li{color:var(--dim);margin:12px 0 12px 20px;font-size:15px}
+  .findings li b{color:var(--ink)}
+  .findings li span{color:var(--accent)}
+
+  .cta{display:inline-block;margin-top:8px;font-family:var(--mono);font-size:13px;
+    color:var(--accent);text-decoration:none;border:1px solid var(--accent);
+    padding:11px 20px;border-radius:8px;transition:all .2s;letter-spacing:.5px}
+  .cta:hover{background:var(--accent);color:#04121a}
+
+  /* architecture pipeline */
+  .pipeline{display:flex;align-items:center;justify-content:space-between;
+    gap:6px;margin-top:34px;flex-wrap:wrap}
+  .layer{flex:1;min-width:90px;height:118px;border:1px solid var(--line);
+    border-radius:10px;background:var(--panel);cursor:pointer;position:relative;
+    display:flex;align-items:flex-end;padding:12px;transition:all .25s;overflow:hidden}
+  .layer::before{content:attr(data-t);font-family:var(--mono);font-size:12px;
+    color:var(--dim);letter-spacing:.5px;z-index:2}
+  .layer::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent,rgba(34,211,238,.06));opacity:0;transition:.25s}
+  .layer.big{flex:1.6;border-color:#2a4d5e}
+  .layer.head{flex:1.2}
+  .layer:hover,.layer.active{border-color:var(--accent);transform:translateY(-4px);
+    box-shadow:0 8px 30px rgba(34,211,238,.12)}
+  .layer:hover::before,.layer.active::before{color:var(--accent)}
+  .layer:hover::after,.layer.active::after{opacity:1}
+  .flow{width:26px;height:1px;background:var(--accent);flex:0 0 auto;opacity:.4;position:relative}
+  .flow::after{content:'';position:absolute;right:-1px;top:-2px;width:5px;height:5px;
+    border-top:1px solid var(--accent);border-right:1px solid var(--accent);
+    transform:rotate(45deg);opacity:.6}
+  .layer-info{margin-top:22px;background:var(--panel2);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:10px;padding:18px 22px}
+  .layer-info b{font-family:var(--mono);color:var(--accent);font-size:14px;letter-spacing:.5px}
+  .layer-info p{color:var(--dim);font-size:14px;margin-top:6px}
+  @media(max-width:860px){.pipeline{flex-direction:column}.flow{width:2px;height:16px}.layer{width:100%}}
+
+  footer{border-top:1px solid var(--line);padding:40px 28px;text-align:center;
+    color:var(--dim);font-family:var(--mono);font-size:12px}
+  footer a{color:var(--accent);text-decoration:none}
+
+  .reveal{opacity:0;transform:translateY(24px);transition:all .7s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:860px){
+    #hero{grid-template-columns:1fr;padding-top:100px}
+    #brainwrap{height:360px;order:-1}
+    .grid2,.grid3{grid-template-columns:1fr}
+    .statband{grid-template-columns:1fr 1fr}
+    .navlinks{display:none}
+    .navlinks.open{display:flex;position:absolute;top:60px;right:20px;flex-direction:column;
+      background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 22px;gap:16px}
+    .menu-btn{display:block}
+    .cm{grid-template-columns:auto repeat(4,44px);font-size:10px}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">neuro<b>scan</b></div>
+  <div class="navlinks" id="nav">
+    <a href="#overview">Overview</a>
+    <a href="#arch">Architecture</a>
+    <a href="#results">Results</a>
+    <a href="#interpret">Interpretability</a>
+    <a href="#demo">Demo</a>
+    <a href="#findings">Findings</a>
+  </div>
+  <button class="menu-btn" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div>
+    <div class="eyebrow">Deep Learning · MRI · Interpretability</div>
+    <h1>Reading the<br><em>brain</em>, honestly.</h1>
+    <p class="lead">A transfer-learning system that detects and classifies brain
+      tumors from MRI, and shows you exactly where it looked to decide.</p>
+    <div class="disclaimer">⚠ Research &amp; education only. Not a medical device.</div>
+  </div>
+  <div id="brainwrap">
+    <div class="brain-tag">3D MODEL · <b>drag to rotate</b></div>
+    <div class="brain-legend">
+      <span><i style="background:#4fc3c7"></i>glioma zone</span>
+      <span><i style="background:#7ec97a"></i>meningioma</span>
+      <span><i style="background:#9b7ede"></i>occipital</span>
+      <span><i style="background:#e8c86a"></i>pituitary / base</span>
+      <span><i style="background:#e07a6a"></i>cerebellum</span>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="reveal">
+    <div class="eyebrow">Overview</div>
+    <h2>Two models, one honest pipeline</h2>
+    <p class="lead">Built on EfficientNetB0 with ImageNet weights, fine-tuned in two
+      stages, evaluated on clean stratified splits with no data leakage. Real numbers.</p>
+  </div>
+  <div class="statband reveal">
+    <div class="stat"><div class="num">99.4%</div><div class="lab">Binary accuracy</div></div>
+    <div class="stat"><div class="num">94.75%</div><div class="lab">4-class accuracy</div></div>
+    <div class="stat"><div class="num">±0.40</div><div class="lab">Std over 3 seeds</div></div>
+    <div class="stat"><div class="num">0.987</div><div class="lab">No-tumor recall</div></div>
+  </div>
+  <div class="grid3">
+    <div class="card reveal"><h3>Detection</h3><p>Binary tumor vs. no-tumor
+      from a merged dataset, handling class imbalance with damped weighting.</p>
+      <div class="kv">recall (no-tumor): <b>0.987</b></div></div>
+    <div class="card reveal"><h3>Typing</h3><p>Four classes (glioma, meningioma, pituitary, no-tumor)
+      trained with label smoothing and staged fine-tuning.</p>
+      <div class="kv">macro-F1: <b>0.950</b></div></div>
+    <div class="card reveal"><h3>Interpretability</h3><p>Grad-CAM overlays confirm
+      the model attends to real lesions, not skull or scanner artifacts.</p>
+      <div class="kv">method: <b>Grad-CAM</b></div></div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="arch">
+  <div class="reveal">
+    <div class="eyebrow">Architecture</div>
+    <h2>How a scan becomes a diagnosis</h2>
+    <p class="lead">Hover any layer to see what it does. The scan flows left to right
+      through the network to two prediction heads.</p>
+  </div>
+  <div class="pipeline reveal" id="pipeline">
+    <div class="layer" data-t="Input"      data-d="224×224 RGB MRI scan. Augmented with flips, small rotations, zoom and contrast during training."></div>
+    <div class="flow"></div>
+    <div class="layer" data-t="Preprocess" data-d="EfficientNet's own normalization is applied inside the model, fixing the earlier CLAHE double-normalization bug."></div>
+    <div class="flow"></div>
+    <div class="layer big" data-t="EfficientNetB0" data-d="ImageNet-pretrained backbone. Early layers frozen (generic edges); upper layers fine-tuned at a low rate."></div>
+    <div class="flow"></div>
+    <div class="layer" data-t="Pooling"    data-d="Global average pooling collapses the feature maps into a single vector, plus 40% dropout for regularization."></div>
+    <div class="flow"></div>
+    <div class="layer head" data-t="Dense heads" data-d="A softmax head for binary detection and a separate softmax head for 4-class typing."></div>
+  </div>
+  <div class="layer-info reveal" id="layerinfo">
+    <b id="li-t">EfficientNetB0</b>
+    <p id="li-d">Hover a layer above to inspect it. The pretrained backbone does most of the visual work; the two lightweight heads specialize it for detection and typing.</p>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="reveal">
+    <div class="eyebrow">Results</div>
+    <h2>Per-class performance</h2>
+    <p class="lead">Multiclass F1 across the four categories on the held-out test set.</p>
+  </div>
+  <div class="chartbox reveal">
+    <div class="radial-wrap">
+      <svg id="radial" viewBox="0 0 320 320" width="320" height="320"></svg>
+      <div class="radial-legend">
+        <div class="lg"><span class="dot" style="background:var(--accent)"></span>glioma <b>0.942</b></div>
+        <div class="lg"><span class="dot" style="background:var(--accent2)"></span>meningioma <b>0.912</b></div>
+        <div class="lg"><span class="dot" style="background:var(--deep)"></span>no&nbsp;tumor <b>0.965</b></div>
+        <div class="lg"><span class="dot" style="background:var(--ok)"></span>pituitary <b>0.948</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card reveal">
+      <h3>Multiclass confusion matrix</h3>
+      <p>Rows = true, columns = predicted. Meningioma is the hardest class, occasionally confused with glioma.</p>
+      <div class="cm" id="cm"></div>
+    </div>
+    <div class="card reveal">
+      <h3>The honest story</h3>
+      <p style="margin-bottom:14px">The original project reported 78.7% multiclass. Diagnosis
+      revealed the cause wasn't the model. It was tangled preprocessing and premature early
+      stopping. After fixing the pipeline and evaluating on clean stratified splits:</p>
+      <div class="kv">before: <b style="color:var(--warn)">78.7%</b> &nbsp;→&nbsp; after: <b>94.75% ± 0.40%</b></div>
+      <div class="kv" style="margin-top:8px">verified over 3 independent random seeds.</div>
+    </div>
+  </div>
+</section>
+
+<!-- INTERPRETABILITY -->
+<section id="interpret">
+  <div class="reveal">
+    <div class="eyebrow">Interpretability</div>
+    <h2>Where the model looks</h2>
+    <p class="lead">Grad-CAM overlays the model's attention on the scan. Tight focus on
+      the lesion means the prediction rests on real anatomy, and the failures explain themselves.</p>
+  </div>
+  <div class="grid2">
+    <figure class="reveal"><img src="assets/gradcam_all_classes.png" alt="Grad-CAM across four classes">
+      <figcaption>Grad-CAM across all four classes. Heat concentrates on each tumor type.</figcaption></figure>
+    <figure class="reveal"><img src="assets/demo_meningioma.png" alt="Clinical viewer meningioma">
+      <figcaption>Clinical-viewer style: grayscale MRI beside the heat overlay + impression.</figcaption></figure>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="reveal">
+    <div class="eyebrow">Demo</div>
+    <h2>The interactive interface</h2>
+    <p class="lead">Upload a scan, get both predictions, see the Grad-CAM, and ask the
+      built-in assistant why. Every answer is grounded in the model's own output.</p>
+  </div>
+  <figure class="reveal"><img src="assets/gui_glioma.png" alt="NeuroScan interface">
+    <figcaption>Glioma case: detection, 4-class typing, Grad-CAM focus, and grounded chat.</figcaption></figure>
+  <div style="margin-top:26px">
+    <a class="cta reveal" href="https://github.com/Nati-1995/Brain-Tumor-MRI-Classification" target="_blank">View the code on GitHub →</a>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section id="findings">
+  <div class="reveal">
+    <div class="eyebrow">Findings</div>
+    <h2>What we learned</h2>
+  </div>
+  <ul class="findings reveal">
+    <li><b>Preprocessing order matters more than architecture.</b> <span>CLAHE applied on top of ImageNet normalization</span> was silently degrading the input. Fixing it moved the needle more than any model change.</li>
+    <li><b>The benchmark's own split was misleading.</b> Re-splitting the data <span>stratified and leakage-free</span> exposed the model's true ceiling.</li>
+    <li><b>Meningioma is the genuine hard case.</b> It confuses with glioma because <span>they look similar on MRI</span>, and Grad-CAM shows exactly when the model loses the lesion.</li>
+    <li><b>Confidence tracks correctness.</b> On the missed cases the model reports <span>low confidence and diffuse attention</span>. It knows when it doesn't know.</li>
+  </ul>
+</section>
+
+<footer>
+  Built by Nati · EfficientNetB0 · Grad-CAM · TensorFlow &nbsp;|&nbsp;
+  <a href="https://github.com/Nati-1995/Brain-Tumor-MRI-Classification" target="_blank">GitHub</a>
+  &nbsp;·&nbsp; Research &amp; education only. Not a medical device.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- reveal on scroll ---------- */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- radial dot plot ---------- */
+(function(){
+  const svg=document.getElementById('radial');
+  const cx=160,cy=160;
+  const data=[
+    {v:.942,r:118,c:getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(),l:'glioma'},
+    {v:.912,r:98, c:getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim(),l:'mening.'},
+    {v:.965,r:78, c:getComputedStyle(document.documentElement).getPropertyValue('--deep').trim(),l:'no tumor'},
+    {v:.948,r:58, c:getComputedStyle(document.documentElement).getPropertyValue('--ok').trim(),l:'pituit.'}
+  ];
+  const NS='http://www.w3.org/2000/svg';
+  // faint guide rings
+  data.forEach(d=>{
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('class','ring');c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',d.r);
+    svg.appendChild(c);
+  });
+  // center label
+  const t1=document.createElementNS(NS,'text');
+  t1.setAttribute('class','ctr');t1.setAttribute('x',cx);t1.setAttribute('y',cy-2);
+  t1.setAttribute('text-anchor','middle');t1.textContent='0.95';svg.appendChild(t1);
+  const t2=document.createElementNS(NS,'text');
+  t2.setAttribute('class','ctr2');t2.setAttribute('x',cx);t2.setAttribute('y',cy+16);
+  t2.setAttribute('text-anchor','middle');t2.textContent='MACRO F1';svg.appendChild(t2);
+
+  const arcs=[];
+  data.forEach(d=>{
+    const circ=2*Math.PI*d.r;
+    const a=document.createElementNS(NS,'circle');
+    a.setAttribute('class','arc');a.setAttribute('cx',cx);a.setAttribute('cy',cy);
+    a.setAttribute('r',d.r);a.setAttribute('stroke',d.c);
+    a.setAttribute('transform',`rotate(-90 ${cx} ${cy})`);
+    a.setAttribute('stroke-dasharray',circ);
+    a.setAttribute('stroke-dashoffset',circ);
+    svg.appendChild(a);
+    arcs.push({el:a,off:circ*(1-d.v),full:circ});
+  });
+
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){arcs.forEach(a=>a.el.setAttribute('stroke-dashoffset',a.off));io.disconnect();}
+  }),{threshold:.3});
+  io.observe(svg);
+})();
+
+/* ---------- confusion matrix ---------- */
+(function(){
+  const labels=['glioma','mening.','no_tum','pituit.'];
+  const M=[[130,6,0,4],[6,124,3,9],[0,0,69,2],[0,0,0,136]];
+  const max=Math.max(...M.flat());
+  const cm=document.getElementById('cm');
+  cm.appendChild(Object.assign(document.createElement('div'),{className:'h'}));
+  labels.forEach(l=>cm.appendChild(Object.assign(document.createElement('div'),{className:'h',textContent:l})));
+  M.forEach((row,i)=>{
+    cm.appendChild(Object.assign(document.createElement('div'),{className:'rl',textContent:labels[i]}));
+    row.forEach(v=>{
+      const t=v/max, d=document.createElement('div');
+      d.className='cell';d.textContent=v;
+      d.style.background=`rgba(216,146,90,${0.10+t*0.9})`;
+      if(t<0.25)d.style.color='#b0a08e';
+      cm.appendChild(d);
+    });
+  });
+})();
+
+/* ---------- architecture hover ---------- */
+(function(){
+  const info_t=document.getElementById('li-t'), info_d=document.getElementById('li-d');
+  document.querySelectorAll('#pipeline .layer').forEach(l=>{
+    l.addEventListener('mouseenter',()=>{
+      document.querySelectorAll('#pipeline .layer').forEach(x=>x.classList.remove('active'));
+      l.classList.add('active');
+      info_t.textContent=l.dataset.t; info_d.textContent=l.dataset.d;
+    });
+  });
+})();
+
+/* ---------- 3D brain (colored tumor-region zones) ---------- */
+(function(){
+  const wrap=document.getElementById('brainwrap');
+
+  // WebGL support check — fall back to a static SVG brain if unavailable
+  function webglOK(){
+    try{const c=document.createElement('canvas');
+      return !!(window.WebGLRenderingContext &&
+        (c.getContext('webgl')||c.getContext('experimental-webgl')));
+    }catch(e){return false;}
+  }
+  if(typeof THREE==='undefined' || !webglOK()){
+    wrap.insertAdjacentHTML('beforeend',`
+      <svg viewBox="0 0 320 300" style="position:absolute;inset:0;margin:auto;width:78%;height:78%">
+        <defs>
+          <radialGradient id="g" cx="50%" cy="42%" r="60%">
+            <stop offset="0%" stop-color="#2a3540"/><stop offset="100%" stop-color="#141210"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="160" cy="140" rx="120" ry="95" fill="url(#g)"/>
+        <path d="M60 130 Q70 60 160 55 Q250 60 260 130 Q255 175 210 185 Q160 178 110 185 Q65 175 60 130Z" fill="#4fc3c7" opacity=".72"/>
+        <path d="M150 58 Q220 55 258 120 Q250 150 205 160 Q175 120 150 58Z" fill="#7ec97a" opacity=".72"/>
+        <path d="M240 120 Q262 135 250 168 Q225 172 208 158 Q230 140 240 120Z" fill="#9b7ede" opacity=".72"/>
+        <ellipse cx="205" cy="205" rx="48" ry="26" fill="#e07a6a" opacity=".78"/>
+        <path d="M150 185 Q150 225 158 250 L168 250 Q160 210 165 185Z" fill="#e8c86a" opacity=".8"/>
+        <ellipse cx="160" cy="140" rx="120" ry="95" fill="none" stroke="#6fa8d0" stroke-width="1" opacity=".25"/>
+        <circle cx="205" cy="120" r="9" fill="#ff5f4d"/>
+        <circle cx="205" cy="120" r="17" fill="#ff5f4d" opacity=".2"/>
+      </svg>`);
+    return;
+  }
+
+  const W=wrap.clientWidth,H=wrap.clientHeight;
+  const scene=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(45,W/H,.1,100);cam.position.z=4.7;
+  const rend=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  rend.setPixelRatio(Math.min(devicePixelRatio,2));rend.setSize(W,H);
+  wrap.appendChild(rend.domElement);
+
+  const brain=new THREE.Group();scene.add(brain);
+
+  function folds(x,y,z){
+    return Math.sin(x*7+y*2)*Math.cos(z*6)*0.05
+         + Math.sin(y*9)*Math.cos(x*8)*0.04
+         + Math.sin(z*11+x*4)*0.028
+         + Math.sin(x*15)*Math.cos(y*13)*0.016;
+  }
+
+  const C={glioma:0x4fc3c7,mening:0x7ec97a,occip:0x9b7ede,pituit:0xe8c86a,cere:0xe07a6a};
+  function regionColor(x,y,z){
+    if(y<-0.55) return C.pituit;
+    if(z<-0.55) return C.occip;
+    if(y>0.35 && z>-0.2) return C.mening;
+    return C.glioma;
+  }
+
+  function hemisphere(sign){
+    const g=new THREE.SphereGeometry(1.15,150,120);
+    const p=g.attributes.position, colors=[], col=new THREE.Color();
+    for(let i=0;i<p.count;i++){
+      let x=p.getX(i),y=p.getY(i)*0.92,z=p.getZ(i)*1.18;
+      const f=1+folds(x,y,z); x*=f;y*=f;z*=f;
+      if(sign*x<0.06) x=sign*0.06+(x-sign*0.06)*0.12;
+      x+=sign*0.14; if(z>0.6) x*=0.9;
+      p.setXYZ(i,x,y,z);
+      col.setHex(regionColor(x,y,z));
+      colors.push(col.r,col.g,col.b);
+    }
+    g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+    g.computeVertexNormals();
+    return g;
+  }
+
+  const matSurf=new THREE.MeshStandardMaterial({vertexColors:true,emissive:0x111111,
+    emissiveIntensity:.25,roughness:.75,metalness:.05,flatShading:true,transparent:true,opacity:.72});
+  const matGlow=new THREE.MeshBasicMaterial({vertexColors:true,wireframe:true,transparent:true,opacity:.12});
+
+  [-1,1].forEach(s=>{const g=hemisphere(s);brain.add(new THREE.Mesh(g,matSurf));brain.add(new THREE.Mesh(g.clone(),matGlow));});
+
+  const cb=new THREE.SphereGeometry(0.46,70,56);
+  const cp=cb.attributes.position;
+  for(let i=0;i<cp.count;i++){const x=cp.getX(i),y=cp.getY(i),z=cp.getZ(i);
+    const f=1+Math.sin(z*24)*0.04+Math.sin(x*22)*0.03;cp.setXYZ(i,x*f,y*f*0.8,z*f);}
+  cb.computeVertexNormals();
+  const cere=new THREE.Mesh(cb,new THREE.MeshStandardMaterial({color:C.cere,emissive:0x2a0d09,
+    emissiveIntensity:.3,roughness:.75,flatShading:true,transparent:true,opacity:.8}));
+  cere.position.set(0,-0.7,-1.15);brain.add(cere);
+
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.17,0.7,20),
+    new THREE.MeshStandardMaterial({color:C.pituit,roughness:.7,transparent:true,opacity:.82,
+      emissive:0x2a2208,emissiveIntensity:.3}));
+  stem.position.set(0,-1.08,-0.9);stem.rotation.x=0.5;brain.add(stem);
+
+  const shell=new THREE.Mesh(new THREE.SphereGeometry(1.55,48,40),
+    new THREE.MeshBasicMaterial({color:0x6fa8d0,transparent:true,opacity:.05,side:THREE.BackSide}));
+  shell.scale.set(1,0.95,1.25);brain.add(shell);
+
+  const spot=new THREE.Mesh(new THREE.SphereGeometry(.14,24,24),
+    new THREE.MeshBasicMaterial({color:0xff5f4d}));
+  const ring=new THREE.Mesh(new THREE.SphereGeometry(.28,24,24),
+    new THREE.MeshBasicMaterial({color:0xff5f4d,transparent:true,opacity:.22}));
+  const sp=new THREE.Vector3(.6,.32,.72);spot.position.copy(sp);ring.position.copy(sp);
+  brain.add(spot);brain.add(ring);
+
+  scene.add(new THREE.AmbientLight(0xbcc8d0,.8));
+  const l1=new THREE.PointLight(0xffffff,1.0);l1.position.set(3,3,4);scene.add(l1);
+  const l2=new THREE.PointLight(0x9fc4e0,.5);l2.position.set(-4,-1,2);scene.add(l2);
+
+  let rx=.35,ry=0,tx=.35,ty=0,drag=false,px,py;
+  wrap.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY});
+  addEventListener('pointerup',()=>drag=false);
+  addEventListener('pointermove',e=>{if(!drag)return;tx+=(e.clientX-px)*.006;ty+=(e.clientY-py)*.006;px=e.clientX;py=e.clientY;});
+
+  let t=0;
+  (function loop(){requestAnimationFrame(loop);t+=.004;
+    rx+=(tx-rx)*.08; ry+=(ty-ry)*.08;
+    brain.rotation.y=rx+t; brain.rotation.x=ry;
+    ring.scale.setScalar(1+Math.sin(t*3)*0.15);
+    rend.render(scene,cam);})();
+
+  addEventListener('resize',()=>{const w=wrap.clientWidth,h=wrap.clientHeight;
+    cam.aspect=w/h;cam.updateProjectionMatrix();rend.setSize(w,h);});
+})();
+</script>
+</body>
+</html>
