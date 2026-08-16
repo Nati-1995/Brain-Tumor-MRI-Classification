@@ -14,26 +14,26 @@ An interactive interface (Gradio) runs both models on an uploaded scan, shows a
 Grad-CAM overlay of where the model looked, and answers preset questions about
 the result — all grounded in the model's own output.
 
-Interface on load:
+The interface:
 
-![Demo — interface](assets/demo_interface.png)
+![Demo - interface](assets/gui_interface.png)
 
-Glioma case — 99% confidence, Grad-CAM localizing the lesion:
+Glioma case — detection, 4-class typing, Grad-CAM, and the chat explaining the result:
 
-![Demo — glioma prediction](assets/demo_glioma.png)
+![Demo - glioma](assets/gui_glioma.png)
 
-Glioma case with the chat explaining the detection:
+Meningioma case — the harder class, correctly typed with the chat explaining the focus region:
 
-![Demo — glioma with explanation](assets/demo_glioma_chat.png)
+![Demo - meningioma](assets/gui_meningioma.png)
 
-Meningioma case — the harder class, correctly typed at 83% with glioma as the
-runner-up, and the chat explaining the focus region:
+The clinical-viewer style pairs each grayscale MRI with its Grad-CAM heat map and
+the model's impression + confidence:
 
-![Demo — meningioma with reasoning](assets/demo_meningioma.png)
+![Clinical viewer - glioma](assets/demo_glioma.png)
 
-Meningioma case showing the full class-score breakdown:
+![Clinical viewer - meningioma](assets/demo_meningioma.png)
 
-![Demo — meningioma class scores](assets/demo_meningioma_scores.png)
+![Clinical viewer - no tumor](assets/demo_notumor.png)
 
 ---
 
@@ -50,7 +50,13 @@ The 4-class result is averaged over 3 random seeds. On the binary task,
 no_tumor recall is 0.987 — of 74 healthy scans only 1 was missed — which is the
 key safety-relevant metric.
 
-![Confusion matrix](assets/confusion_matrix.png)
+Multiclass confusion matrix:
+
+![Multiclass confusion matrix](assets/confusion_matrix.png)
+
+Binary confusion matrix:
+
+![Binary confusion matrix](assets/confusion_matrix_binary.png)
 
 Per-class performance (representative run):
 
@@ -138,9 +144,9 @@ artifacts, and explains where and why misclassifications occur.
 
 ![Grad-CAM across all four classes](assets/gradcam_all_classes.png)
 
-Clinical-viewer style (grayscale MRI beside heat overlay):
+Multiple glioma cases, showing consistent focus on the tumor region:
 
-![Clinical-style Grad-CAM](assets/gradcam_clinical.png)
+![Grad-CAM glioma grid](assets/gradcam_glioma_grid.png)
 
 ---
 
