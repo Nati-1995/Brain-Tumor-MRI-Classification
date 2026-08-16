@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "moment": "^2.30.1",
-    "simple-git": "^3.32.3"
-  }
-}
