@@ -1,0 +1,7 @@
+tensorflow>=2.15
+numpy
+opencv-python
+scikit-learn
+matplotlib
+gradio>=4.0
+Pillow
